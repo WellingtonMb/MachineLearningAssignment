@@ -1,0 +1,113 @@
+---
+title: "Prediction_Assignment"
+author: "WellingtonMb"
+date: "15 January 2017"
+output: html_document
+---
+## Introduction
+
+In this project, the goal is to use data from accelerometers on the belt, forearm, arm and dumbell of 6 participants to build a prediction model that helps to assess the quality of activities from performers.
+
+The outcomes of the assessment are classed into 5 different categories namely A, B, C, D and E.
+
+The data used in this project is obtained from the 2 url given below. To gain more information about the data one can read more from: http://groupware.les.inf.puc-rio.br/har#ixzz4Vs1XfUDD
+
+###1. The training data was downloaded programatically as follows
+
+```{r, echo=TRUE}
+url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+
+if(!file.exists("training")){dir.create("training")}
+
+download.file(url, destfile = "./pml-training.csv", method = "curl")
+```
+
+###2. The testing data was downloaded programatically as follows
+
+```{r, echo=TRUE}
+url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+if(!file.exists("testing")){dir.create("testing")}
+download.file(url, destfile = "./pml-testing.csv")
+```
+
+###3. Loading the training data
+
+The training data was loaded onto the console and cleaned by selecting the relevant features
+
+```{r}
+library(caret)
+data <- read.table("./pml-training.csv", sep = ",", header = T)
+required_data <- data[, c(40:42, 63:65, 116:118, 154:156, 160)]
+summary(required_data)
+```
+
+
+
+###4 Partitioning the data into training and testing sets
+
+The testing set will be used to estimate the out of sample error of our predictor.
+
+```{r}
+inTrain <- createDataPartition(required_data$classe, p=0.6, list=FALSE)
+training <- required_data[inTrain,]
+testing <- required_data[-inTrain,]
+```
+
+
+###5 Training the model 
+
+The model was trained using the training set of the data. The confusion matrix was used to estimate the perfomance of the model on the test data. The overall accuracy of 93.44% is good. A very high accuracy might indicate overfitting which is undesirable.
+
+```{r, cache=TRUE}
+
+#Load the vowel.train and vowel.test data sets:
+library(ElemStatLearn)
+library(randomForest)
+
+modelfit_rf <- randomForest(classe ~ ., data = training )
+pred1 <- predict(modelfit_rf, testing)
+confusionMatrix(pred1, testing$classe)
+```
+
+
+###6.Loading the test data
+
+The testing data was loaded onto the console and cleaned by selecting the relevant features
+
+```{r, echo=TRUE}
+
+testing_data1 <- read.table("./pml-testing.csv", sep = ",", header = T)
+required_testing_data1 <- testing_data1[, c(40:42, 63:65, 116:118, 154:156, 160)]
+head(required_testing_data1)
+```
+
+###7. Using the trained model on a test data set
+
+The machine learning algorithm was applied to the 20 test cases available in the test data for submission
+
+```{r, cache=TRUE}
+library(caret)
+pred1 <- predict(modelfit_rf, required_testing_data1, type = "class")
+pred1
+```
+
+###9.Conclusion
+
+The caret package was not used on the training of the random forest method because the process was not fast enough. The method used here was fast meaning it can be scalable. The choice of features used was based on the need to use as few features as possible to make the model more understandable. The overall accuracy of 93.44% is good.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
